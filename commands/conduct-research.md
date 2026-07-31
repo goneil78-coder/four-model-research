@@ -14,6 +14,28 @@ __REPO__/bin/preflight.sh
 Record which lanes are LIVE and which are DOWN. This determines what the report
 is allowed to claim. Do not skip it, and do not assume yesterday's result.
 
+## 1b. Source routing — check before you launch
+
+Scan the question for sentiment signals: "what did people think", "reactions to",
+"best / worst / favourite", "reviews of", "consensus on", or an event plus a
+recent date.
+
+**If a signal fires**, the four web-search lanes are the wrong instrument —
+sentiment lives in communities, not articles. Keep three lanes and repoint the
+fourth at community APIs. Reddit first, since it consistently carries more
+substance than X on niche topics:
+
+```bash
+curl -s -A "four-model-research/1.0" \
+  "https://www.reddit.com/r/<subreddit>/search.json?q=<query>&restrict_sr=1&sort=relevance&limit=25" \
+  | jq -r '.data.children[].data | "\(.score)\t\(.permalink)\t\(.title)"'
+```
+
+Return verbatim quotes with thread URLs and scores. The grok lane's `x_search`
+covers X; do not duplicate it here.
+
+**If no signal fires**, launch the four lanes unchanged.
+
 ## 2. Launch all four lanes in parallel
 
 One message, four agent calls: `claude-researcher`, `openai-researcher`,
@@ -34,6 +56,21 @@ convergence basis as "N of 4". Do not describe partial results as
 
 Contradictions are findings. When lanes disagree, report the disagreement and
 who said what — do not average it into a smooth summary.
+
+## 3b. Verify the URLs before you write
+
+Lanes hallucinate plausible URLs. A dead link reads as evidence and is not.
+
+```bash
+__REPO__/bin/verify-urls.sh <file-or-stdin-with-the-merged-findings>
+```
+
+- `404`/`000` — remove from Findings. If a finding rested on it, move it to Gaps
+  and say the source could not be verified.
+- `401`/`403`/`429` — usually a paywall or bot-check, not a dead page. Keep it,
+  mark it `access-restricted`, and say plainly that it was not read.
+
+Do this before writing the report, not after.
 
 ## 4. Write the report
 
@@ -59,9 +96,15 @@ Path: `$RESEARCH_DIR/YYYY-MM/YYYY-MM-DD_topic-slug.md`
 
 ## Findings
 
-| Finding | Source | Confirmed by |
-|---|---|---|
-| <claim> | <URL, date> | claude, gemini |
+| Conf | Finding | Source | Confirmed by |
+|---|---|---|---|
+| HIGH | <claim> | <URL, date> | claude, gemini |
+
+Confidence is per claim and separate from lane count. `HIGH` needs two
+independent sources or one official primary source (registry, regulator,
+statutory filing). `MED` is one credible source. `LOW` is inferred or
+lane-flagged as uncertain. A claim confirmed by three lanes all citing the same
+single article is `MED`, not `HIGH` — lane agreement is not source independence.
 
 ## Disagreements
 

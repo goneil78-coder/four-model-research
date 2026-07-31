@@ -5,7 +5,7 @@ Grok — in parallel, then merge their answers into a sourced report that is
 honest about which models actually agreed.
 
 Built for [Claude Code](https://claude.com/claude-code). Adds one command:
-`/conduct-research <question>`.
+`/conduct-research <question>`. Lane agents run on Opus.
 
 ## Design principle: a lane that fails says so
 
@@ -90,6 +90,40 @@ jurisdiction-by-jurisdiction sources (Hong Kong is covered in detail).
 certificate transparency, subfinder and assetfinder, probes them with httpx, and
 reports which techniques ran versus were skipped. It needs Go 1.24+ tools on
 PATH at `~/go/bin`; it degrades and says so if they are missing.
+
+## Verifying what comes back
+
+Research models hallucinate plausible URLs, and a dead link reads as evidence
+when it isn't. Every lane checks its own citations before returning, and the
+merge step re-checks the combined set:
+
+```bash
+./bin/verify-urls.sh report.md        # or pipe URLs on stdin
+```
+
+It resolves each URL in parallel and separates three cases: live, **blocked**
+(401/403/429 — a paywall or bot-check, so the source may well be real but was
+not read), and **dead** (404/000 — remove it). Run against a real report it
+routinely finds one or two institutional pages that have moved since the lane
+cited them.
+
+Findings also carry a per-claim confidence tag, kept deliberately separate from
+lane count:
+
+- `HIGH` — two independent sources, or one official primary source
+- `MED` — one credible source
+- `LOW` — inferred, or the lane itself flagged it as uncertain
+
+Three lanes citing the same single article is `MED`, not `HIGH`. Lane agreement
+is not source independence.
+
+## Sentiment questions get routed differently
+
+For "what did people think of X" style questions, four web-search lanes are the
+wrong instrument — that discussion lives in communities, not articles. The
+command detects those and repoints one lane at the Reddit API, keeping the other
+three. In practice Reddit carries more substance than X on niche topics, which
+is a thing the grok lane reports honestly when its `x_search` comes back empty.
 
 ## Cost
 
