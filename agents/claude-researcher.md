@@ -59,12 +59,22 @@ seems obviously true.
 Any number, percentage or date: confirm the lane attributed it to a source. If
 it did not, mark it `[LOW]` and say `unattributed` beside it.
 
-## Output
+## Output — write the report, return a receipt
+
+Your full findings go in a **file**, not in your reply. The orchestrator reads
+the file. Your reply is a short receipt so the run stays readable for a human
+watching four lanes at once.
+
+The orchestrator gives you a run directory in the prompt. Write to
+`<run-dir>/claude.md` using the structure below. If no run directory was given,
+use `/tmp/four-model-research/claude.md` and say so in the receipt.
+
+File contents:
 
 ```
 LANE: claude
 STATUS: OK
-MODEL: Claude (native WebSearch)
+MODEL: <model and mechanism>
 
 FINDINGS
 - [HIGH|MED|LOW] <finding> [URL, date]
@@ -73,5 +83,33 @@ SOURCES
 - <URL> — <title> — <date>
 
 NOTES
-- <gaps, contradictions, unverified items>
+- <gaps, contradictions, anything the lane flagged as uncertain>
+```
+
+Every finding carries its source URL. A finding the lane gave without a source
+goes under NOTES marked `unsourced`, never under FINDINGS.
+
+**Your reply is only this, and nothing else:**
+
+```
+LANE: claude
+STATUS: OK
+FILE: <absolute path you wrote>
+FINDINGS: <n> (HIGH <n> / MED <n> / LOW <n>)
+SOURCES: <n> checked, <n> dead removed
+HEADLINE: <one sentence — the single most important thing you found>
+FLAG: <one line, or "none" — anything the orchestrator must not miss:
+       a contradiction with another lane, a claim you could not verify,
+       a section that came back empty>
+```
+
+Do not paste findings into the reply. Do not summarise the report in the reply.
+Do not explain your process. The receipt is seven lines; the file is the work.
+
+On failure the reply is still just:
+
+```
+LANE: claude
+STATUS: FAILED
+ERROR: <stderr, verbatim>
 ```

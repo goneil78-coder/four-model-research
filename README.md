@@ -91,6 +91,18 @@ certificate transparency, subfinder and assetfinder, probes them with httpx, and
 reports which techniques ran versus were skipped. It needs Go 1.24+ tools on
 PATH at `~/go/bin`; it degrades and says so if they are missing.
 
+## Lanes report by receipt, not by dump
+
+Four lanes each returning a full report into the transcript is thousands of words
+a human has to wade through before the merged answer even starts — and they end
+up reading the same findings twice.
+
+So each lane writes its full report to a file and replies with a seven-line
+receipt: status, file path, finding counts by confidence, sources checked and
+dead, a one-sentence headline, and one flag line for anything the orchestrator
+must not miss. The merge reads the files. Nothing is lost; the run is just
+readable while it happens.
+
 ## Verifying what comes back
 
 Research models hallucinate plausible URLs, and a dead link reads as evidence

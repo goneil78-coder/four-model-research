@@ -38,8 +38,22 @@ covers X; do not duplicate it here.
 
 ## 2. Launch all four lanes in parallel
 
+First make a run directory:
+
+```bash
+RUN="${RESEARCH_DIR:-$HOME/research}/.lanes/$(date +%Y-%m-%d)_<topic-slug>"; mkdir -p "$RUN"; echo "$RUN"
+```
+
 One message, four agent calls: `claude-researcher`, `openai-researcher`,
-`gemini-researcher`, `grok-researcher`. Give each the same question, verbatim.
+`gemini-researcher`, `grok-researcher`. Give each the same question, verbatim,
+and give each the run directory:
+
+> Write your full report to `<RUN>/<lane>.md` and reply with the receipt only.
+
+Each lane returns roughly seven lines. **Read the four files to merge.** Never
+ask a lane to paste its findings into the reply — four raw lane reports in the
+transcript is thousands of words the human has to read before your merge, and
+they will read it all twice.
 
 Launch a lane even if preflight marked it DOWN — a lane that reports its own
 failure is more useful than one you silently dropped.
