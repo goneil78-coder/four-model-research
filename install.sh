@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installs the command and the four lane agents into a Claude Code config dir.
+# Installs the command and the five lane agents into a Claude Code config dir.
 # Usage: ./install.sh [CLAUDE_DIR]   (default ~/.claude)
 set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

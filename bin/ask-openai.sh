@@ -7,7 +7,8 @@ set -uo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/_env.sh"
 
-TIMEOUT="${OPENAI_TIMEOUT:-600}"
+# 600 s timed out on a nine-question brief (22 Nov 2026); GPT at high reasoning needs longer.
+TIMEOUT="${OPENAI_TIMEOUT:-1800}"
 
 if ! command -v codex >/dev/null 2>&1; then
   echo "openai: codex CLI not found on PATH (npm i -g @openai/codex)" >&2; exit 3

@@ -1,8 +1,8 @@
 ---
-description: Research a question across four independent models and save a sourced report
+description: Research a question across five independent models and save a sourced report
 ---
 
-Research the question that follows this command, using four independent models,
+Research the question that follows this command, using five independent models,
 and save a report.
 
 ## 1. Preflight — before anything else
@@ -20,9 +20,11 @@ Scan the question for sentiment signals: "what did people think", "reactions to"
 "best / worst / favourite", "reviews of", "consensus on", or an event plus a
 recent date.
 
-**If a signal fires**, the four web-search lanes are the wrong instrument —
-sentiment lives in communities, not articles. Keep three lanes and repoint the
-fourth at community APIs. Reddit first, since it consistently carries more
+**If a signal fires**, the web-search lanes are the wrong instrument —
+sentiment lives in communities, not articles. Repoint the **claude** lane at community APIs (it is the only lane with its own
+tools; the other four are bound to their scripts) and run the other four
+unchanged. Report the community findings in their own section; they are not a
+web-search lane and do not count towards convergence. Reddit first, since it consistently carries more
 substance than X on niche topics:
 
 ```bash
@@ -34,9 +36,9 @@ curl -s -A "four-model-research/1.0" \
 Return verbatim quotes with thread URLs and scores. The grok lane's `x_search`
 covers X; do not duplicate it here.
 
-**If no signal fires**, launch the four lanes unchanged.
+**If no signal fires**, launch the five lanes unchanged.
 
-## 2. Launch all four lanes in parallel
+## 2. Launch all five lanes in parallel
 
 First make a run directory:
 
@@ -44,14 +46,14 @@ First make a run directory:
 RUN="${RESEARCH_DIR:-$HOME/research}/.lanes/$(date +%Y-%m-%d)_<topic-slug>"; mkdir -p "$RUN"; echo "$RUN"
 ```
 
-One message, four agent calls: `claude-researcher`, `openai-researcher`,
-`gemini-researcher`, `grok-researcher`. Give each the same question, verbatim,
+One message, five agent calls: `claude-researcher`, `openai-researcher`,
+`gemini-researcher`, `grok-researcher`, `deepseek-researcher`. Give each the same question, verbatim,
 and give each the run directory:
 
 > Write your full report to `<RUN>/<lane>.md` and reply with the receipt only.
 
-Each lane returns roughly seven lines. **Read the four files to merge.** Never
-ask a lane to paste its findings into the reply — four raw lane reports in the
+Each lane returns roughly seven lines. **Read the five files to merge.** Never
+ask a lane to paste its findings into the reply — five raw lane reports in the
 transcript is thousands of words the human has to read before your merge, and
 they will read it all twice.
 
@@ -64,8 +66,8 @@ A finding is **corroborated** only by lanes that returned `STATUS: OK` and
 actually cited it. Never count a lane that failed, never count a lane that
 returned nothing, and never infer that a silent lane would have agreed.
 
-If fewer than four lanes returned, say so in the report header and state the
-convergence basis as "N of 4". Do not describe partial results as
+If fewer than five lanes returned, say so in the report header and state the
+convergence basis as "N of 5". Do not describe partial results as
 "cross-model consensus".
 
 Contradictions are findings. When lanes disagree, report the disagreement and
@@ -105,8 +107,9 @@ Path: `$RESEARCH_DIR/YYYY-MM/YYYY-MM-DD_topic-slug.md`
 | openai | GPT (codex CLI) | OK |
 | gemini | Gemini 3.1 Pro | OK |
 | grok | Grok 4.5 (+ x_search) | FAILED — <error> |
+| deepseek | DeepSeek (own web index, incl. Chinese) | OK |
 
-**Convergence basis: N of 4 lanes.**
+**Convergence basis: N of 5 lanes.**
 
 ## Findings
 
@@ -151,6 +154,9 @@ failed, say so in your first two sentences — not in a footnote.
 - `grok` is the only lane that can see X. Its single-lane findings are often
   the most interesting thing in the report — surface them, flagged as
   uncorroborated.
+- `deepseek` is the lane most likely to reach Chinese-language sources. On
+  China/East Asia questions its single-lane findings are often primary sources
+  the others only saw second-hand — surface them the same way.
 
 ---
 
@@ -161,8 +167,8 @@ what the lanes are for.
 
 ### First: ground the entity
 
-Two unrelated businesses often share a trading name across jurisdictions. Four
-lanes researching the wrong one produce four confident wrong answers. Before launching, establish the **legal entity name and jurisdiction**:
+Two unrelated businesses often share a trading name across jurisdictions. Five
+lanes researching the wrong one produce five confident wrong answers. Before launching, establish the **legal entity name and jurisdiction**:
 
 ```bash
 __REPO__/bin/company-domains.sh <their-domain>

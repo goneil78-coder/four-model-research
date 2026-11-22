@@ -1,7 +1,7 @@
 # four-model-research
 
-Ask one research question to four different models — Claude, GPT, Gemini and
-Grok — in parallel, then merge their answers into a sourced report that is
+Ask one research question to five different models — Claude, GPT, Gemini,
+Grok and DeepSeek — in parallel, then merge their answers into a sourced report that is
 honest about which models actually agreed.
 
 Built for [Claude Code](https://claude.com/claude-code). Adds one command:
@@ -12,7 +12,7 @@ Built for [Claude Code](https://claude.com/claude-code). Adds one command:
 Multi-model setups fail quietly. A model ID gets retired, a key expires, a CLI
 changes its flags — and an agent wrapping that call will often paper over the
 error and answer from its own knowledge instead. The report still looks normal.
-It just isn't four models any more.
+It just isn't five models any more.
 
 That is dangerous precisely because it is invisible in the output. Agreement
 between lanes gets used as a confidence signal, so a silently substituted lane
@@ -20,15 +20,15 @@ inflates confidence in exactly the findings you should trust least.
 
 So every lane here is built to fail loudly:
 
-- `preflight.sh` tests all four lanes before a run and exits non-zero if any is down
+- `preflight.sh` tests all five lanes before a run and exits non-zero if any is down
 - each agent is told that a missing lane is a correct result and a substituted lane is a corrupted one
-- the report header states the convergence basis as "N of 4"
+- the report header states the convergence basis as "N of 5"
 - no finding is marked corroborated by a lane that did not return
 
 Lane independence is testable, so test it. On a sample question the three
 external lanes returned nine sources with zero domain overlap.
 
-## The four lanes
+## The five lanes
 
 | Lane | Model | Mechanism | Needs |
 |---|---|---|---|
@@ -36,6 +36,7 @@ external lanes returned nine sources with zero domain overlap.
 | openai | GPT | `codex exec` with web search | `codex login` |
 | gemini | Gemini 3.1 Pro | `gemini` CLI, Search grounding | `GEMINI_API_KEY` |
 | grok | Grok 4.5 | xAI Agent Tools API | `XAI_API_KEY` |
+| deepseek | DeepSeek (deepseek-flash) | chat API + built-in `deepseek_web_search` | `DEEPSEEK_API_KEY` |
 
 The **openai lane runs on a ChatGPT subscription** via the codex CLI, so it
 needs no API key. Set `OPENAI_API_KEY` only if you'd rather bill the API.
@@ -43,6 +44,15 @@ needs no API key. Set `OPENAI_API_KEY` only if you'd rather bill the API.
 Grok's lane is the only one with `x_search`, so it's the only one that can see
 X/Twitter — live practitioner reaction and dissent that hasn't reached articles
 yet. Its single-lane findings get their own section in the report.
+
+DeepSeek's lane searches DeepSeek's own index, which reaches Chinese-language
+sources (government sites, Chinese newspapers and surveys) that the other lanes,
+searching mostly in English, rarely touch. The script exits non-zero if the
+model answers without running a single search, and demands inline URLs, because
+without that instruction it writes a polished report with no links in the text.
+`bin/deepseek-provenance.ts` then checks every link in its report against the
+search results DeepSeek actually received (never its own answer text), so a link
+written from memory shows up as UNTRACED.
 
 ## Setup
 
